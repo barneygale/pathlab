@@ -224,7 +224,13 @@ class Accessor(pathlib._Accessor):
         """
         raise NotImplementedError
 
-    # Symlinks ----------------------------------------------------------------
+    # Links -------------------------------------------------------------------
+
+    def link(self, src, dst):
+        """
+        Create a hard link pointing to *src* named *dst*, like ``os.link()``.
+        """
+        raise NotImplementedError
 
     def symlink(self, src, dst, target_is_directory=False):
         """
