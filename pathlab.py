@@ -1,5 +1,7 @@
 import errno
+import enum
 import pathlib
+import stat
 
 
 class Path(pathlib.Path):
@@ -346,14 +348,27 @@ class Accessor(pathlib._Accessor):
         raise NotImplementedError
 
 
+class StatType(enum.Enum):
+    dir = stat.S_IFDIR
+    file = stat.S_IFREG
+    fifo = stat.S_IFIFO
+    socket = stat.S_IFSOCK
+    symlink = stat.S_IFLNK
+    char_device = stat.S_IFCHR
+    block_device = stat.S_IFBLK
+
+
 class StatResult(object):
     """
     An alternative to ``os.stat_result``. Objects of this type may be returned
     from ``Accessor.stat()``.
     """
 
-    #: File mode (type + permissions).
-    st_mode = 0
+    #: File type
+    st_type = "file"
+
+    #: File permissions
+    st_permissions = 0
 
     #: Uniquely identifies the file for the given value of ``st_dev``.
     st_ino = 0
@@ -381,6 +396,15 @@ class StatResult(object):
 
     #: Timestamp of file creation or most recent metadata modification,
     st_ctime = 0
+
+    @property
+    def st_mode(self):
+        return StatType[self.st_type].value | self.st_permissions
+
+    @st_mode.setter
+    def st_mode(self, value):
+        self.st_type = StatType(stat.S_IFMT(value)).name
+        self.st_permissions = stat.S_IMODE(value)
 
     def __repr__(self):
         name = self.__class__.__name__
