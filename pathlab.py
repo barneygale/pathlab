@@ -16,6 +16,11 @@ class Path(pathlib.Path):
         """
         return self._accessor is getattr(other_path, '_accessor', None)
 
+    # Add compatibility with ``os.DirEntry()``
+    @property
+    def path(self):
+        return str(self)
+
     # Avoid Windows/Linux magic and direct instantiation
     def __new__(cls, *args, **kwargs):
         if not isinstance(cls._accessor, Accessor):
@@ -155,6 +160,14 @@ class Accessor(pathlib._Accessor):
         Return a list containing the names of the files in the directory. The
         list is in arbitrary order.  It does not include the special entries
         '.' and '..'.
+        """
+        raise NotImplementedError
+
+    def scandir(self, path):
+        """
+        A generator that yields the ``Path`` objects for files in the
+        directory. The results are in arbitrary order. They do not include the
+        special entries '.' and '..'.
         """
         raise NotImplementedError
 
