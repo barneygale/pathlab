@@ -16,6 +16,8 @@ kinds of path, such as:
 Installation
 ------------
 
+Requires Python 3.6+
+
 Use pip::
 
     pip install --user pathlab
