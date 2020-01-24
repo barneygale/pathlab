@@ -16,6 +16,22 @@ class Path(pathlib.Path):
         """
         return self._accessor is getattr(other_path, '_accessor', None)
 
+    def upload(self, source):
+        """
+        Upload/add to this path from the given *local* filesystem path.
+        """
+        self._accessor.upload(source, self)
+
+    def download(self, target):
+        """
+        Download/extract this path to the given *local* filesystem path.
+        """
+        self._accessor.download(self, target)
+
+    # Avoid ``str(self)``; delegate to accessor.
+    def __fspath__(self):
+        return self._accessor.fspath(self)
+
     # Add compatibility with ``os.DirEntry()``
     @property
     def path(self):
@@ -234,6 +250,35 @@ class Accessor(pathlib._Accessor):
         """
         Rename *src* to *dst*, clobbering the existing destination if it
         exists. Like ``os.replace()``
+        """
+        raise NotImplementedError
+
+    # Pathlab specialities ----------------------------------------------------
+
+    def upload(self, src, dst):
+        """
+        Upload from *src* to *dst*. Only the destination is guaranteed to be
+        an instance of your path class.
+
+        Note: this method is an addition to the pathlib accessor class.
+        """
+        raise NotImplementedError
+
+    def download(self, src, dst):
+        """
+        Download from *src* to *dst*. Only the source is guaranteed to be an
+        instance of your path class.
+
+        Note: this method is an addition to the pathlib accessor class.
+        """
+        raise NotImplementedError
+
+    def fspath(self, path):
+        """
+        Return a string/bytes object representing the given path as a *local*
+        filesystem path.
+
+        Note: this method is an addition to the pathlib accessor class.
         """
         raise NotImplementedError
 
