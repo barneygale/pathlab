@@ -44,12 +44,23 @@ Pure methods work as we'd expect, whereas impure methods raise
         raise NotImplementedError
     NotImplementedError
 
-Add methods like :meth:`~Accessor.stat` and :meth:`~Accessor.listdir` to your
-accessor to implement impure functionality. You can use the
-:meth:`~Accessor.not_found`, :meth:`~Accessor.already_exists`,
-:meth:`~Accessor.not_a_directory`, :meth:`~Accessor.is_a_directory` and
-:meth:`~Accessor.permission_denied` methods to raise appropriate exceptions.
-You'll also probably want to add an ``__init__()`` method that records some
-state (e.g. an open file or a socket) for later use.
+Now we can begin adding methods to our accessor::
 
-Refer to the pathlab source code for example accessor implementations.
+    class MyAccessor(pathlab.Accessor):
+        factory = MyPath
+
+        def __repr__(self):
+            return "MyAccessor(%r)" % self.children
+
+        def __init__(self, children):
+            self.children = children
+
+        def stat(self, path):
+            return pathlab.Stat(type='dir')
+
+        def listdir(self, path):
+            return self.children
+
+Refer to the :class:`Accessor` API documentation for a full list of abstract
+methods you may wish to implement. Refer to the pathlab source code for
+example accessor implementations.

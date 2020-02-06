@@ -18,7 +18,7 @@ class Accessor(pathlib._Accessor):
 
     # Path type factory -------------------------------------------------------
 
-    #: Subclass of :class:`pathlab.Path`
+    #: Must be set to a subclass of :class:`pathlab.Path`
     factory = None
 
     def __new__(cls, *args, **kwargs):
