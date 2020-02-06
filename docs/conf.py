@@ -61,5 +61,5 @@ html_static_path = ['_static']
 
 autodoc_member_order = 'bysource'
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
-
+master_doc = 'index'
 
