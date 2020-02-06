@@ -5,8 +5,7 @@ Pathlab
 |pypi| |docs|
 
 Pathlab provides an object-oriented path interface to archives, images, remote
-filesystems, etc. :mod:`pathlab` is built upon :mod:`pathlib`. It
-includes built-in support for:
+filesystems, etc. It is built upon pathlib_ and includes built-in support for:
 
 - ``tar`` archives
 - ``zip`` archives
@@ -25,7 +24,7 @@ Requires Python 3.6+. Use pip::
 Usage
 -----
 
-These usage examples are adapted from the :mod:`pathlib` documentation.
+These usage examples are adapted from the pathlib_ documentation.
 
 Getting a path type:
 
@@ -69,6 +68,8 @@ Opening a file:
     ...
     '#!/bin/bash\n'
 
+
+.. _pathlib: https://docs.python.org/3/library/pathlib.html
 
 .. |pypi| image:: https://img.shields.io/pypi/v/pathlab.svg
     :target: https://pypi.python.org/pypi/pathlab
