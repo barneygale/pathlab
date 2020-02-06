@@ -1,90 +1,79 @@
-=======================================
-Pathlab makes it easy to extend Pathlib
-=======================================
+=======
+Pathlab
+=======
 
-*Pathlib* is a built-in Python module that provides object-oriented access to
-filesystem paths.
+|pypi| |docs|
 
-*Pathlab* is a small Python module that helps you extend pathlib for other
-kinds of path, such as:
+Pathlab provides an object-oriented path interface to archives, images, remote
+filesystems, etc. :mod:`pathlab` is built upon :mod:`pathlib`. It
+includes built-in support for:
 
-- Archives and disk images. The ``examples/`` directory contains an
-  implementation for ``.zip`` archives.
-- Network filesystem protocols like FTP, NFS and WebDAV.
-- Any other place where the ``pathlib.Path`` interface makes sense.
+- ``tar`` archives
+- ``zip`` archives
+- ``iso`` disc images (via ``pycdlib``)
+- JFrog Artifactory (via ``requests``)
+
+You can also define your own ``Path`` subclass with its own accessor.
 
 Installation
 ------------
 
-Requires Python 3.6+
-
-Use pip::
+Requires Python 3.6+. Use pip::
 
     pip install --user pathlab
 
 Usage
 -----
 
-Subclass ``pathlab.Path`` and ``pathlab.Accessor``. A skeleton implementation
-might look like this::
+These usage examples are adapted from the :mod:`pathlib` documentation.
 
-    import pathlab
+Getting a path type:
 
-    class ZipPath(pathlab.Path):
-        pass
+    >>> from pathlab import TarAccessor
+    >>> TarPath = TarAccessor('project.tgz').TarPath
 
-    class ZipAccessor(pathlab.Accessor):
-        path_base = ZipPath
+Listing subdirectories:
 
-To implement basic support for zip files, first add a ``ZipAccessor``
-initializer that records or creates a ``zipfile.ZipFile`` object. Next,
-implement accessor methods like ``listdir()`` and ``stat()``. See the
-``pathlab.py`` source code for a full list of methods and the ``examples/``
-directory for samples. All of these methods are optional, so you can implement
-support for your chosen format/protocol piecemeal.
+    >>> root = TarPath('/')
+    >>> [x for x in root.iterdir() if x.is_dir()]
+    [TarAccessor('project.tgz').TarPath('/docs')
+     TarAccessor('project.tgz').TarPath('/etc'),
+     TarAccessor('project.tgz').TarPath('/project')]
 
-To use the ``ZipPath`` class (defined above), access it as an attribute of an
-``ZipAccessor`` instance. For example::
+Listing Python source files in this directory tree:
 
-    documents = ZipAccessor("/home/me/project.zip")
+    >>> list(root.glob('**/*.py'))
+    [TarAccessor('project.tgz').TarPath('/setup.py'),
+     TarAccessor('project.tgz').TarPath('/docs/conf.py'),
+     TarAccessor('project.tgz').TarPath('/project/__init__.py')]
 
-    readme = documents.ZipPath("/README.txt")
-    print(readme.read_text())
+Navigating inside a directory tree:
 
-The is similar to how you might work with files on disk::
+    >>> p = TarPath('/etc')
+    >>> q = p / 'init.d' / 'reboot'
+    >>> q
+    TarAccessor('project.tgz').TarPath('/etc/init.d/reboot')
+    >>> q.resolve()
+    TarAccessor('project.tgz').TarPath('/etc/rc.d/init.d/halt')
 
-    import pathlib
+Querying path properties:
 
-    readme = pathlib.Path("/home/me/project/README.txt")
-    print(readme.read_text())
+    >>> q.exists()
+    True
+    >>> q.is_dir()
+    False
 
-To extend the pathlib API, add new methods in your ``ZipPath`` equivalent.
-These should call appropriate methods on the accessor.
+Opening a file:
+
+    >>> with q.open() as f: f.readline()
+    ...
+    '#!/bin/bash\n'
 
 
-Implementation Notes
---------------------
+.. |pypi| image:: https://img.shields.io/pypi/v/pathlab.svg
+    :target: https://pypi.python.org/pypi/pathlab
+    :alt: Latest version released on PyPi
 
-The only "magic" part of this library is that each accessor *object* creates a
-path *type* with the accessor object as a class attribute. It's worth noting
-the multiple levels of inheritance of the ``readme`` object in the above
-example:
-
-1. ``pathlib.PurePath`` provides methods that do not require filesystem access
-2. ``pathlib.Path`` provides methods that use an accessor object to access the
-   filesystem.
-3. ``pathlab.Path`` fixes instances where ``pathlib.Path`` doesn't use its
-   accessor. This class cannot be instantiated directly.
-4. ``pathlab.examples.zippath.ZipPath`` does nothing, but could provide
-   additional methods. This class cannot be instantiated directly.
-5. ``documents.ZipPath`` is a type which binds a specific accessor instance -
-   ``documents`` in this case. This class *can* be instantiated directly.
-
-The standard library's ``pathlib`` mostly delegates to an accessor object -
-``pathlib._normal_accessor`` - but uses OS functionality directly in a few
-cases; these include use of the ``pwd``, ``grp`` and ``os`` modules. Pathlab
-re-implements problematic methods in a ``Path`` subclass, and adds methods to
-the ``Accessor`` subclass where needed.
-
-Pathlab does not attempt to bridge between different kinds of ``Path`` object.
-Mixed types may result in headaches.
+.. |docs| image:: https://readthedocs.org/projects/pathlab/badge/?version=latest
+    :target: http://pathlab.readthedocs.io/en/latest
+    :alt: Documentation
