@@ -14,9 +14,10 @@ Tar Archives
 
 Use a :class:`pathlab.TarAccessor` object to interact with a ``tar`` file::
 
-    >>> from pathlab.tar import TarAccessor
-    >>> archive = TarAccessor('thing.tar')
-    >>> readme = archive.TarPath('/readme.txt')
+    >>> import pathlab
+    >>> archive = pathlab.TarAccessor('myproject.tar.gz')
+    >>> root = archive.TarPath('/')
+    >>> readme = root / 'readme.txt'
     >>> readme.exists()
     True
 
@@ -25,9 +26,10 @@ Zip Archives
 
 Use a :class:`pathlab.ZipAccessor` object to interact with a ``zip`` file::
 
-    >>> from pathlab.zip import ZipAccessor
-    >>> archive = ZipAccessor('thing.zip')
-    >>> readme = archive.ZipPath('/readme.txt')
+    >>> import pathlab
+    >>> archive = pathlab.ZipAccessor('myproject.zip')
+    >>> root = archive.ZipPath('/')
+    >>> readme = root / 'readme.txt'
     >>> readme.exists()
     True
 
@@ -37,9 +39,10 @@ Iso Images
 
 Use an :class:`pathlab.IsoAccessor` object to interact with an ``iso`` file::
 
-    >>> from pathlab.iso import IsoAccessor
-    >>> disc = IsoAccessor('thing.iso')
-    >>> readme = disc.IsoPath('/readme.txt')
+    >>> import pathlab
+    >>> disk = pathlab.IsoAccessor('myproject.iso')
+    >>> root = disc.IsoPath('/')
+    >>> readme = root / 'readme.txt'
     >>> readme.exists()
     True
 
@@ -50,9 +53,10 @@ Artifactory Instances
 Use an :class:`pathlab.RtAccessor` object to interact with a JFrog Artifactory
 instance::
 
-    >>> from pathlab.rt import RtAccessor
-    >>> rt = RtAccessor('http://artifactory/')
-    >>> readme = rt.RtPath('/myrepo/latest/readme.txt')
+    >>> import pathlab
+    >>> rt = pathlab.RtAccessor('http://artifactory/')
+    >>> repo = rt.RtPath('/myproject/latest')
+    >>> readme = repo / 'readme.txt'
     >>> readme.exists()
     True
 

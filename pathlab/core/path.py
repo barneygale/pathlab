@@ -1,7 +1,5 @@
-import contextlib
 import io
 import pathlib
-
 
 
 class Path(pathlib.Path):
@@ -23,7 +21,7 @@ class Path(pathlib.Path):
 
     def upload_from(self, source):
         """
-        Upload/add to this path from the given *local* filesystem path.
+        Upload/add this path from the given *local* filesystem path.
         """
         return self._accessor.upload(source, self)
 
@@ -48,11 +46,6 @@ class Path(pathlib.Path):
     def cwd(cls):
         return cls(cls._accessor.getcwd())
 
-    # Avoid ``os.environ`` etc.
-    @classmethod
-    def home(cls):
-        return cls(cls._accessor.gethomedir(None))
-
     # Avoid Windows/Linux magic and direct instantiation
     def __new__(cls, *args, **kwargs):
         from pathlab.core.accessor import Accessor
@@ -75,19 +68,17 @@ class Path(pathlib.Path):
         return "%r.%s" % (self._accessor, super(Path, self).__repr__())
 
     # Avoid file descriptors
-    @contextlib.contextmanager
     def open(self, mode="r", buffering=-1, encoding=None,
              errors=None, newline=None):
         if self._closed:
             self._raise_closed()
         text = 'b' not in mode
         mode = ''.join(c for c in mode if c not in 'btU')
-        with self._accessor.open(self, mode, buffering) as fileobj:
-            if text:
-                with io.TextIOWrapper(fileobj, encoding, errors, newline) as wrapper:
-                    yield wrapper
-            else:
-                yield fileobj
+        fileobj = self._accessor.open(self, mode, buffering)
+        if text:
+            return io.TextIOWrapper(fileobj, encoding, errors, newline)
+        else:
+            return fileobj
 
     # Avoid file descriptors
     def touch(self, mode=0o666, exist_ok=True):
@@ -97,7 +88,7 @@ class Path(pathlib.Path):
 
     # Avoid ``os.fsencode()``
     def __bytes__(self):
-        return self._accessor.fsencode(self)
+        return str(self).encode(self._accessor.encoding)
 
     # Avoid ``import pwd`` etc
     def owner(self):
@@ -106,15 +97,6 @@ class Path(pathlib.Path):
     # Avoid ``import grp`` etc
     def group(self):
         return self._accessor.stat(self).group
-
-    # Avoid ``os.environ`` etc.
-    def expanduser(self):
-        if (not (self._drv or self._root) and
-            self._parts and self._parts[0][:1] == '~'):
-            homedir = self._accessor.gethomedir(self._parts[0][1:])
-            return self._from_parts([homedir] + self._parts[1:])
-
-        return self
 
     # Avoid ``os.getcwd()``
     def absolute(self):
@@ -127,8 +109,15 @@ class Path(pathlib.Path):
         obj._init(template=self)
         return obj
 
-    # Avoid ``os.getcwd()``
-    def resolve(self, strict=False):
-        if self._closed:
-            self._raise_closed()
-        return super(Path, self.absolute()).resolve(strict=strict)
+    # Avoid ``Path()``
+    def is_mount(self):
+        if not self.exists() or not self.is_dir():
+            return False
+        try:
+            stat1 = self.stat()
+            stat2 = self.parent.stat()
+        except OSError:
+            return False
+        if stat1.st_dev != stat2.st_dev:
+            return False
+        return stat1.st_ino == stat2.st_ino

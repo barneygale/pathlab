@@ -18,6 +18,14 @@ Pathlab fixes these instances by subclassing :class:`pathlib.Path` as
 :class:`pathlab.Path` and re-implementing the problematic methods. This
 includes a few additions and changes to the accessor interface.
 
+Flavouring the Accessor
+-----------------------
+
+The standard library's :mod:`pathlib` module uses a *flavour* object to handle
+pure path semantics. As before, this abstraction is leaky. Pathlab makes no
+distinction between the path accessor and flavour, and so allows methods like
+:meth:`~Accessor.casefold()` to be re-implemented.
+
 Binding the Accessor
 --------------------
 

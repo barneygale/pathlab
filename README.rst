@@ -9,7 +9,7 @@ filesystems, etc. It is built upon pathlib_ and includes built-in support for:
 
 - ``tar`` archives
 - ``zip`` archives
-- ``iso`` disc images (via ``pycdlib``)
+- ``iso`` disc images (inc Rock Ridge; exc Joliet and UDF)
 - JFrog Artifactory (via ``requests``)
 
 You can also define your own ``Path`` subclass with its own accessor.
@@ -75,6 +75,6 @@ Opening a file:
     :target: https://pypi.python.org/pypi/pathlab
     :alt: Latest version released on PyPi
 
-.. |docs| image:: https://readthedocs.org/projects/pathlab/badge/?version=latest
+.. |docs| image:: https://readthedocs.org/projects/pathlab/badge
     :target: http://pathlab.readthedocs.io/en/latest
     :alt: Documentation

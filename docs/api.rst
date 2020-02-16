@@ -16,58 +16,81 @@ Abstract Accessor
 
 .. autoclass:: Accessor
     :members:
-    :exclude-members: lstat, lchmod, scandir
 
-    This table shows all abstract methods that you may wish to implement in
-    your own :class:`Accessor` subclass, along with their stdlib equivalents.
+    This table shows all abstract methods that should be implemented
+    in your own :class:`Accessor` subclass.
 
     .. table::
 
-        ============================  ====================  ==============================================
-        Abstract Method               Equivalent            Description
-        ============================  ====================  ==============================================
-        :meth:`~Accessor.open`        :func:`io.open`       Open path and return a file object
-        :meth:`~Accessor.stat`        :func:`os.stat`       Return the a :class:`Stat` object for the path
-        :meth:`~Accessor.listdir`     :func:`os.listdir`    Return a list of names of directory children
-        :meth:`~Accessor.readlink`    :func:`os.readlink`   Return the target of the this symbolic link
-        :meth:`~Accessor.touch`                             Create the file, if it doesn't exist
-        :meth:`~Accessor.mkdir`       :func:`os.mkdir`      Create the directory, if it doesn't exist
-        :meth:`~Accessor.symlink`     :func:`os.symlink`    Create a symbolic link
-        :meth:`~Accessor.link`        :func:`os.link`       Create a hard link
-        :meth:`~Accessor.unlink`      :func:`os.unlink`     Delete the file or link
-        :meth:`~Accessor.rmdir`       :func:`os.rmdir`      Delete the directory (must be empty)
-        :meth:`~Accessor.rename`      :func:`os.rename`     Move/rename path
-        :meth:`~Accessor.replace`     :func:`os.replace`    Move/rename path, clobbering existing files
-        :meth:`~Accessor.chmod`       :func:`os.chmod`      Change permissions
-        :meth:`~Accessor.fsencode`    :func:`os.fsencode`   Encode filename to filesystem encoding
-        :meth:`~Accessor.fspath`                            Return a *local* path for this path
-        :meth:`~Accessor.download`                          Download to the *local* filesystem
-        :meth:`~Accessor.upload`                            Upload from the *local* filesystem
-        :meth:`~Accessor.getcwd`      :func:`os.getcwd`     Return the working directory
-        :meth:`~Accessor.gethomedir`                        Return the user's home directory
-        ============================  ====================  ==============================================
+        ============================  ==============================================
+        Abstract Method               Description
+        ============================  ==============================================
+        :meth:`~Accessor.open`        Open path and return a file object
+        :meth:`~Accessor.stat`        Return the a :class:`Stat` object for the path
+        :meth:`~Accessor.listdir`     Yield names of directory children
+        :meth:`~Accessor.readlink`    Return the target of the this symbolic link
+        :meth:`~Accessor.create`      Create the file, if it doesn't exist
+        :meth:`~Accessor.chmod`       Change file permissions
+        :meth:`~Accessor.move`        Move/rename the file
+        :meth:`~Accessor.delete`      Delete the file
+        :meth:`~Accessor.download`    Download to the *local* filesystem
+        :meth:`~Accessor.upload`      Upload from the *local* filesystem
+        :meth:`~Accessor.fspath`      Return a *local* path for this path
+        :meth:`~Accessor.getcwd`      Return the working directory
+        :meth:`~Accessor.gethomedir`  Return the user's home directory
+        :meth:`~Accessor.close`       Close this accessor object
+        ============================  ==============================================
 
-    This table shows utility methods you may call to raise an exception:
+    This table shows utility methods you may call from your methods to raise
+    an exception:
 
     .. table::
 
         ===================================  =========================  ======================
-        Method                               Raises                     Error number
+        Method                               Raises                     Errno
         ===================================  =========================  ======================
         :meth:`~Accessor.not_found`          :exc:`FileNotFoundError`   :data:`~errno.ENOENT`
         :meth:`~Accessor.already_exists`     :exc:`FileExistsError`     :data:`~errno.EEXIST`
         :meth:`~Accessor.not_a_directory`    :exc:`NotADirectoryError`  :data:`~errno.ENOTDIR`
         :meth:`~Accessor.is_a_directory`     :exc:`IsADirectoryError`   :data:`~errno.EISDIR`
+        :meth:`~Accessor.not_a_symlink`      :exc:`OSError`             :data:`~errno.EINVAL`
         :meth:`~Accessor.permission_denied`  :exc:`PermissionError`     :data:`~errno.EACCES`
         ===================================  =========================  ======================
 
+    This table shows all methods with default implementations that you may
+    wish to re-implement:
+
+    .. table::
+
+        ======================================  ==========================  ========================
+        Method                                  Uses                        Like
+        ======================================  ==========================  ========================
+        :meth:`~Accessor.splitroot`
+        :meth:`~Accessor.casefold`
+        :meth:`~Accessor.casefold_parts`
+        :meth:`~Accessor.is_reserved`
+        :meth:`~Accessor.make_uri`
+        :meth:`~Accessor.resolve`               :meth:`~Accessor.readlink`  :func:`os.path.abspath`
+        :meth:`~Accessor.scandir`               :meth:`~Accessor.listdir`   :func:`os.scandir`
+        :meth:`~Accessor.touch`                 :meth:`~Accessor.create`
+        :meth:`~Accessor.mkdir`                 :meth:`~Accessor.create`    :func:`os.mkdir`
+        :meth:`~Accessor.symlink`               :meth:`~Accessor.create`    :func:`os.symlink`
+        :meth:`~Accessor.unlink`                :meth:`~Accessor.delete`    :func:`os.unlink`
+        :meth:`~Accessor.rmdir`                 :meth:`~Accessor.delete`    :func:`os.rmdir`
+        :meth:`~Accessor.rename`                :meth:`~Accessor.move`      :func:`os.rename`
+        :meth:`~Accessor.replace`               :meth:`~Accessor.move`      :func:`os.replace`
+        :meth:`~Accessor.lstat`                 :meth:`~Accessor.stat`      :func:`os.lstat`
+        :meth:`~Accessor.lchmod`                :meth:`~Accessor.chmod`     :func:`os.lchmod`
+        :meth:`~Accessor.__enter__`
+        :meth:`~Accessor.__exit__`              :meth:`~Accessor.close`
+        ======================================  ==========================  ========================
 
 Path
 ----
 
 .. autoclass:: Path
     :show-inheritance:
-    :members: sameaccessor, upload_from, download_to, absolute
+    :members: sameaccessor, upload_from, download_to
 
     This table shows all methods and attributes available from :class:`Path`
     instances. You should not need to re-implement any of these methods.

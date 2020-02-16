@@ -9,7 +9,7 @@ and :class:`Accessor`::
     import pathlab
 
     class MyPath(pathlab.Path):
-        pass
+        __slots__ = ()
 
     class MyAccessor(pathlab.Accessor):
         factory = MyPath
@@ -49,11 +49,11 @@ Now we can begin adding methods to our accessor::
     class MyAccessor(pathlab.Accessor):
         factory = MyPath
 
-        def __repr__(self):
-            return "MyAccessor(%r)" % self.children
-
         def __init__(self, children):
             self.children = children
+
+        def __repr__(self):
+            return "MyAccessor(%r)" % self.children
 
         def stat(self, path):
             return pathlab.Stat(type='dir')

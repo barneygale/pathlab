@@ -1,4 +1,5 @@
 import collections.abc
+import functools
 import datetime
 import stat
 
@@ -6,6 +7,7 @@ import stat
 default_time = datetime.datetime.fromtimestamp(0)
 default_type = stat.S_IFREG
 types = {
+    'file':         stat.S_IFREG,
     'dir':          stat.S_IFDIR,
     'char_device':  stat.S_IFCHR,
     'block_device': stat.S_IFBLK,
@@ -26,6 +28,7 @@ st_fields = [
     'st_ctime',
 ]
 
+@functools.total_ordering
 class Stat(collections.abc.Sequence):
     """
     Mutable version of :class:`os.stat_result`. The usual ``st_`` attributes
@@ -69,16 +72,25 @@ class Stat(collections.abc.Sequence):
     #: Number of hard links to this file
     hard_link_count = 0
 
+    #: Time of creation
+    create_time = default_time
+
     #: Time of last access
     access_time = default_time
 
     #: Time of last modification
     modify_time = default_time
 
-    #: Time of creation
-    create_time = default_time
+    #: Time of last status modification
+    status_time = default_time
+
+    #: Link target
+    target = None
 
     def __init__(self, **params):
+        self.update(params)
+
+    def update(self, params):
         for name, value in params.items():
             setattr(self, name, value)
 
@@ -93,6 +105,12 @@ class Stat(collections.abc.Sequence):
 
     def __len__(self):
         return len(st_fields)
+
+    def __eq__(self, other):
+        return tuple(self) == tuple(other)
+
+    def __lt__(self, other):
+        return tuple(self) < tuple(other)
 
     # Compatibility with ``os.stat_result`` -----------------------------------
 
@@ -109,7 +127,7 @@ class Stat(collections.abc.Sequence):
         return self.device_id
 
     @property
-    def st_nlinks(self):
+    def st_nlink(self):
         return self.hard_link_count
 
     @property
@@ -134,4 +152,4 @@ class Stat(collections.abc.Sequence):
 
     @property
     def st_ctime(self):
-        return self.create_time.timestamp()
+        return self.status_time.timestamp()
