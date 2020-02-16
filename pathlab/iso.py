@@ -46,7 +46,7 @@ class IsoAccessor(pathlab.Accessor):
             self.fileobj = file
             self.managed = False
         else:
-            self.fileobj = open(file, 'rb')
+            self.fileobj = open(file, 'rb', buffering=SECTOR)
             self.managed = True
 
         # Load volume descriptors
