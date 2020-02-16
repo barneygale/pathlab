@@ -94,26 +94,17 @@ class IsoAccessor(pathlab.Accessor):
         assert a == b
         return a
 
-    # ISO 9660:9.1.5 - 7 bytes
-    def _unpack_time_short(self):
-        year, month, day, hours, minutes, seconds, offset = self.fileobj.read(7)
-        dt = datetime.datetime(1900 + year, month, day, hours, minutes, seconds)
-        dt += datetime.timedelta(minutes=15*offset)
-        return dt
-
-    # ISO 9660:8.4.26.1 - 17 bytes
-    def _unpack_time_long(self):
-        string = self.fileobj.read(16).decode('ascii')
-        offset = self.fileobj.read(1)[0]
-        dt = datetime.datetime.strptime(string, '%Y%m%d%H%M%f')
-        dt += datetime.timedelta(minutes=15*offset)
-        return dt
-
-    def _unpack_time(self, long):
+    # 17 bytes (long)  - ISO 9660:8.4.26.1
+    #  7 bytes (short) - ISO 9660:9.1.5
+    def _unpack_time(self, long=False):
         if long:
-            return self._unpack_time_long()
+            s = self.fileobj.read(16).decode('ascii')
+            t = datetime.datetime.strptime(s, '%Y%m%d%H%M%S%f')
         else:
-            return self._unpack_time_short()
+            y, m, d, H, M, S = self.fileobj.read(6)
+            t = datetime.datetime(1900 + y, m, d, H, M, S)
+        offset = self.fileobj.read(1)[0]
+        return t + datetime.timedelta(minutes=15*offset)
 
     # ISO 9660:9.1
     def _unpack_record(self):
@@ -130,7 +121,7 @@ class IsoAccessor(pathlab.Accessor):
         _             = self._unpack_byte()
         i_sector      = self._unpack_both('I')
         i_size        = self._unpack_both('I')
-        i_create_time = self._unpack_time_short()
+        i_create_time = self._unpack_time()
         i_flags       = self._unpack_byte()
         _             = self._unpack_bytes(6)
         i_name        = self._unpack_bytes(self._unpack_byte())
