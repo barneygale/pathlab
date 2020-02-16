@@ -66,7 +66,7 @@ class TarAccessor(pathlab.Accessor):
         elif mode == "r":
             return self.reader.extractfile(self._encode(path))
         elif mode == "w":
-            return pathlab.Creator(path, unlink=False)
+            return pathlab.Creator(path, path_mode="ignore")
         else:
             raise NotImplementedError
 

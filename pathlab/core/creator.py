@@ -11,23 +11,44 @@ class Creator(io.BytesIO):
     A creator object may be returned from :meth:`Accessor.open` in ``w`` mode.
 
     :param path: The path to be created
+    :param path_mode: Action to take when path exists. One of ``ignore``,
+        ``raise``, or ``delete`` (the default).
+    :param parent_mode: Action to take when parent doesn't exist. One of
+        ``ignore``, ``raise`` (the default), or ``create``.
     :param initial: Initial data to add to the buffer
-    :param unlink: Whether to call :meth:`Accessor.unlink` in advance if the
-        path already exists.
+    :param stat: The initial :class:`Stat` object, which will have its ``size``
+        attribute overwritten.
     """
 
-    def __init__(self, path, initial=None, unlink=True):
-        super(Creator, self).__init__(initial)
+    def __init__(self, path, path_mode="delete", parent_mode="raise",
+                 initial=None, stat=None, ):
+        assert path_mode in ("ignore", "raise", "delete")
+        assert parent_mode in ("ignore", "raise", "create")
         self.path = path
+        self.path_mode = path_mode
         self.parent = path.parent
-        self.accessor = path._accessor
-        self.unlink = unlink
+        self.parent_mode = parent_mode
+        self.check()
+        super(Creator, self).__init__(initial)
+        self.stat = stat or Stat()
 
     def close(self):
-        if not self.parent.exists():
-            return self.accessor.not_found(self.parent)
-        if self.unlink and self.path.exists():
-            self.path.unlink()
-        size = self.tell()
+        self.check()
+        self.stat.size = self.tell()
         self.seek(0)
-        self.accessor.create(self.path, Stat(size=size), self)
+        self.path._accessor.create(self.path, self.stat, self)
+
+    def check(self):
+        accessor = self.path._accessor
+        if self.parent_mode != "ignore":
+            if not self.parent.exists():
+                if self.parent_mode == "create":
+                   self.parent.mkdir(parents=True)
+                else:
+                   accessor.not_found(parent)
+        if self.path_mode != "ignore":
+            if self.path.exists():
+                if self.path_mode == "delete":
+                    self.path.unlink()
+                else:
+                    accessor.already_exists(self.path)

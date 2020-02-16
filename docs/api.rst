@@ -170,3 +170,7 @@ Stat
 .. autoclass:: Stat
     :members:
 
+Creator
+-------
+
+.. autoclass:: Creator

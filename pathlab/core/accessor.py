@@ -41,7 +41,9 @@ class Accessor(pathlib._Accessor, pathlib._PosixFlavour):
 
         The underlying stream *must* be opened in binary mode (not text mode).
         The file mode is as in :func:`io.open`, except that it will not contain
-        any of 'b', 't' or 'U'.
+        any of ``b``, ``t`` or ``U``.
+
+        In ``w`` mode, you may wish to return a :class:`Creator` object.
         """
         raise NotImplementedError
 
