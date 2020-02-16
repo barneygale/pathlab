@@ -1,7 +1,6 @@
 import datetime
 import io
 import functools
-import stat
 import struct
 
 import pathlab
@@ -11,17 +10,7 @@ SECTOR = 2048
 ISO_IDENT = b"CD001"
 PVD_TYPE = 1
 END_TYPE = 255
-PX_MODES = {
-    stat.S_IFREG:  'file',
-    stat.S_IFDIR:  'dir',
-    stat.S_IFCHR:  'char_device',
-    stat.S_IFBLK:  'block_device',
-    stat.S_IFIFO:  'fifo',
-    stat.S_IFLNK:  'symlink',
-    stat.S_IFSOCK: 'socket',
-}
-PX_FIELDS = ('type_and_permissions', 'hard_link_count', 'user_id', 'group_id',
-             'file_id')
+PX_FIELDS = ('mode', 'hard_link_count', 'user_id', 'group_id', 'file_id')
 TF_FIELDS = ('create_time', 'modify_time', 'access_time', 'status_time',
              'backup_time', 'expiration_time', 'effective_time')
 
@@ -200,9 +189,9 @@ class IsoAccessor(pathlab.Accessor):
             elif r_kind == b'PX':
                 for c_field in PX_FIELDS:
                     c_value =  self._unpack_both('I')
-                    if c_field == 'type_and_permissions':
-                        record['type'] = PX_MODES[stat.S_IFMT(c_value)]
-                        record['permissions'] = stat.S_IMODE(c_value)
+                    if c_field == 'mode':
+                        c_value = pathlab.Stat.unpack_mode(c_value)
+                        record['type'], record['permissions'] = c_value
                     else:
                         record[c_field] = c_value
                     if self.fileobj.tell() >= r_end:

@@ -5,7 +5,6 @@ import stat
 
 
 default_time = datetime.datetime.fromtimestamp(0)
-default_type = stat.S_IFREG
 types = {
     'file':         stat.S_IFREG,
     'dir':          stat.S_IFDIR,
@@ -15,6 +14,7 @@ types = {
     'symlink':      stat.S_IFLNK,
     'socket':       stat.S_IFSOCK,
 }
+types_inv = {mode: name for name, mode in types.items()}
 st_fields = [
     'st_mode',
     'st_ino',
@@ -100,6 +100,8 @@ class Stat(collections.abc.Sequence):
         fields = ", ".join("%s=%r" % pair for pair in fields)
         return "%s(%s)" % (name, fields)
 
+    # Sequence methods --------------------------------------------------------
+
     def __getitem__(self, item):
         return getattr(self, st_fields[item])
 
@@ -112,44 +114,25 @@ class Stat(collections.abc.Sequence):
     def __lt__(self, other):
         return tuple(self) < tuple(other)
 
+    # File mode utilities -----------------------------------------------------
+
+    @staticmethod
+    def pack_mode(type, permissions):
+        return types.get(type, stat.S_IFREG) | permissions
+
+    @staticmethod
+    def unpack_mode(mode):
+        return types_inv.get(stat.S_IFMT(mode), 'file'), stat.S_IMODE(mode)
+
     # Compatibility with ``os.stat_result`` -----------------------------------
 
-    @property
-    def st_mode(self):
-        return types.get(self.type, default_type) | self.permissions
-
-    @property
-    def st_ino(self):
-        return self.file_id
-
-    @property
-    def st_dev(self):
-        return self.device_id
-
-    @property
-    def st_nlink(self):
-        return self.hard_link_count
-
-    @property
-    def st_uid(self):
-        return self.user_id
-
-    @property
-    def st_gid(self):
-        return self.group_id
-
-    @property
-    def st_size(self):
-        return self.size
-
-    @property
-    def st_atime(self):
-        return self.access_time.timestamp()
-
-    @property
-    def st_mtime(self):
-        return self.modify_time.timestamp()
-
-    @property
-    def st_ctime(self):
-        return self.status_time.timestamp()
+    st_mode  = property(lambda self: self.pack_mode(self.type, self.permissions))
+    st_ino   = property(lambda self: self.file_id)
+    st_dev   = property(lambda self: self.device_id)
+    st_nlink = property(lambda self: self.hard_link_count)
+    st_uid   = property(lambda self: self.user_id)
+    st_gid   = property(lambda self: self.group_id)
+    st_size  = property(lambda self: self.size)
+    st_atime = property(lambda self: self.access_time.timestamp())
+    st_mtime = property(lambda self: self.modify_time.timestamp())
+    st_ctime = property(lambda self: self.status_time.timestamp())
