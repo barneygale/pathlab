@@ -1,5 +1,4 @@
 import datetime
-import io
 import functools
 import struct
 
@@ -17,7 +16,6 @@ TF_FIELDS = ('create_time', 'modify_time', 'access_time', 'status_time',
 
 class IsoPath(pathlab.Path):
     __slots__ = ()
-
 
 class IsoAccessor(pathlab.Accessor):
     """
@@ -332,7 +330,7 @@ class IsoAccessor(pathlab.Accessor):
         if mode == "r":
             record = self._load_record(path)
             self.fileobj.seek(SECTOR * record['sector'])
-            return io.BytesIO(self.fileobj.read(record['size']))
+            return pathlab.FileInFile(self.fileobj, self.fileobj.tell(), record['size'])
         raise NotImplementedError
 
     def close(self):

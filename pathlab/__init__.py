@@ -2,6 +2,7 @@ from pathlab.core.accessor import Accessor
 from pathlab.core.creator import Creator
 from pathlab.core.path import Path
 from pathlab.core.stat import Stat
+from pathlab.core.fileinfile import FileInFile
 from pathlab.iso import IsoAccessor
 from pathlab.rt import RtAccessor
 from pathlab.tar import TarAccessor
